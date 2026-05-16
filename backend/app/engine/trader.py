@@ -210,10 +210,16 @@ class PaperTrader:
     async def log_signal(self, signal: SignalOutput) -> SignalLog:
         log = SignalLog(
             market_condition_id=signal.market_condition_id,
+            market_slug=signal.market_slug,
+            market_end_unix=signal.market_end_unix,
             signal_type=signal.signal_type,
             direction=signal.direction,
             strength=signal.strength,
+            edge=signal.edge,
+            suggested_size=signal.suggested_size,
             btc_price=signal.btc_price,
+            btc_window_open_price=signal.btc_window_open_price or 0.0,
+            btc_pct_move=signal.btc_pct_move,
             token_up_price=signal.token_up_price,
             token_down_price=signal.token_down_price,
             note=signal.note,

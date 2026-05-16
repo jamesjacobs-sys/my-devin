@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisco
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import get_session
 from app.data.models import BalanceSnapshot, BotSettings, SignalLog, Trade
 from app.data.schemas import (
@@ -160,15 +161,16 @@ async def get_signals(limit: int = 100, session: AsyncSession = Depends(get_sess
             SignalOutput(
                 ts=r.ts,
                 market_condition_id=r.market_condition_id,
-                market_slug="",
-                market_end_unix=0,
+                market_slug=r.market_slug or "",
+                market_end_unix=r.market_end_unix or 0,
                 signal_type=r.signal_type,
                 direction=r.direction,
                 strength=r.strength,
-                edge=0.0,
-                suggested_size=0.0,
+                edge=r.edge or 0.0,
+                suggested_size=r.suggested_size or 0.0,
                 btc_price=r.btc_price,
-                btc_pct_move=0.0,
+                btc_window_open_price=r.btc_window_open_price or 0.0,
+                btc_pct_move=r.btc_pct_move or 0.0,
                 token_up_price=r.token_up_price,
                 token_down_price=r.token_down_price,
                 note=r.note,
@@ -189,7 +191,7 @@ async def get_settings_endpoint(session: AsyncSession = Depends(get_session)):
         "min_edge": bot.min_edge,
         "dislocation_threshold": bot.dislocation_threshold,
         "starting_balance": bot.starting_balance,
-        "live_credentials_present": False,  # surfaced via env not from DB
+        "live_credentials_present": bool(settings.polymarket_private_key),
     }
 
 

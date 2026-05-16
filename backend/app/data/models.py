@@ -54,10 +54,16 @@ class SignalLog(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     ts: datetime = Field(default_factory=datetime.utcnow, index=True)
     market_condition_id: str = Field(index=True)
+    market_slug: str = ""
+    market_end_unix: int = 0
     signal_type: str
     direction: str  # UP | DOWN | NEUTRAL
     strength: float
+    edge: float = 0.0
+    suggested_size: float = 0.0
     btc_price: float
+    btc_window_open_price: float = 0.0
+    btc_pct_move: float = 0.0
     token_up_price: float
     token_down_price: float
     note: str = ""
