@@ -122,9 +122,9 @@ def evaluate_market(
     if token_ask <= 0 or token_ask >= 1:
         return None
 
-    fee_rate = _fee_per_share(token_ask) + 0.02  # variable fee + taker
+    total_fee_per_share = _fee_per_share(token_ask) + token_ask * 0.02  # variable fee + taker
     implied_payoff = 1.0 - token_ask
-    expected_value_pct = strength * implied_payoff - (1.0 - strength) * token_ask - fee_rate * token_ask
+    expected_value_pct = strength * implied_payoff - (1.0 - strength) * token_ask - total_fee_per_share
     edge = expected_value_pct / token_ask if token_ask > 0 else 0.0
 
     if edge < min_edge:

@@ -115,7 +115,8 @@ class BinanceBTCStream:
                     await self._run_okx(url)
                 else:
                     await self._run_binance(url)
-                backoff = min(backoff * 1.5, 10.0)
+                # Successful run (clean disconnect) — reset backoff and stay on same source.
+                backoff = 1.0
             except asyncio.CancelledError:
                 self._connected = False
                 raise

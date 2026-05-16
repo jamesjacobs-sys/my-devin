@@ -175,9 +175,13 @@ class PaperTrader:
                 continue
             if t.market_end_ts > now_unix:
                 continue
-            # Determine outcome using BTC price recorded at the resolution time
-            btc_open = t.btc_price_at_window_open
+            # Determine outcome using BTC price recorded at the resolution time.
+            # Fall back to entry price when window-open price is unknown so DOWN
+            # trades aren't trivially resolved as LOSS (btc_close >= 0 is always true).
+            btc_open = t.btc_price_at_window_open if t.btc_price_at_window_open > 0 else t.btc_price_at_entry
             btc_close = btc_price_at_close.get(t.market_end_ts, t.btc_price_at_entry)
+            if btc_open <= 0:
+                continue  # no reference price available — leave OPEN, retry later
             actual_direction = "UP" if btc_close >= btc_open else "DOWN"
             if t.outcome == actual_direction:
                 t.status = "WIN"
