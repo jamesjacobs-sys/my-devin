@@ -136,19 +136,23 @@ type BacktestResult = {
   wins: number;
   losses: number;
   win_rate: number;
-  roi: number;
+  roi_pct: number;
   sharpe: number;
-  max_drawdown: number;
+  max_drawdown_pct: number;
   trades: {
-    ts: number;
+    window_start_unix: number;
+    window_end_unix: number;
     direction: string;
     entry_price: number;
     exit_price: number;
     size: number;
+    fee: number;
     pnl: number;
-    balance: number;
+    btc_open: number;
+    btc_close: number;
   }[];
-  equity_curve: { ts: number; balance: number }[];
+  equity_curve: number[];
+  note: string;
 };
 
 function fmt(num: number | null | undefined, digits = 2): string {
@@ -775,7 +779,7 @@ function BacktestPanel() {
 
   const equityChartData = useMemo(() => {
     if (!result) return [];
-    return result.equity_curve.map((p) => ({ t: p.ts, balance: p.balance, label: new Date(p.ts * 1000).toLocaleTimeString() }));
+    return result.equity_curve.map((balance, i) => ({ t: i, balance, label: `#${i}` }));
   }, [result]);
 
   return (
@@ -851,9 +855,9 @@ function BacktestPanel() {
               tone={result.ending_balance >= result.starting_balance ? "pos" : "neg"}
               sub={`from $${fmt(result.starting_balance, 0)}`}
             />
-            <Stat label="ROI" value={`${fmt(result.roi * 100, 2)}%`} tone={result.roi >= 0 ? "pos" : "neg"} />
+            <Stat label="ROI" value={`${fmt(result.roi_pct, 2)}%`} tone={(result.roi_pct ?? 0) >= 0 ? "pos" : "neg"} />
             <Stat label="Win rate" value={`${fmt(result.win_rate * 100, 1)}%`} sub={`${result.wins}W / ${result.losses}L`} />
-            <Stat label="Max drawdown" value={`${fmt(result.max_drawdown * 100, 2)}%`} tone="neg" sub={`sharpe ${fmt(result.sharpe, 2)}`} />
+            <Stat label="Max drawdown" value={`${fmt(result.max_drawdown_pct, 2)}%`} tone="neg" sub={`sharpe ${fmt(result.sharpe, 2)}`} />
           </div>
           <div className="h-40">
             <ResponsiveContainer width="100%" height="100%">

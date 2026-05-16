@@ -119,15 +119,21 @@ class PaperTrader:
             return None
         size = budget / entry_price
 
-        fee = entry_price * 0.25 * (entry_price * (1.0 - entry_price)) ** 2 * size
-        fee += entry_price * size * settings.polymarket_taker_fee_rate
+        def _fee(sz: float) -> float:
+            f = entry_price * 0.25 * (entry_price * (1.0 - entry_price)) ** 2 * sz
+            f += entry_price * sz * settings.polymarket_taker_fee_rate
+            return f
+
+        fee = _fee(size)
 
         balance = await self.balance(bot.mode)
         cost = entry_price * size + fee
         if cost > balance:
-            size = max(0.0, (balance - fee) / entry_price)
+            fee_per_share = _fee(1.0)
+            size = max(0.0, balance / (entry_price + fee_per_share))
             if size <= 0:
                 return None
+            fee = _fee(size)
 
         trade = Trade(
             mode=bot.mode,
@@ -163,7 +169,7 @@ class PaperTrader:
         now_unix = int(_dt.utcnow().timestamp())
         resolved: List[Trade] = []
 
-        open_trades = await self.get_open_trades()
+        open_trades = await self.get_open_trades(mode="paper")
         for t in open_trades:
             if t.market_end_ts == 0:
                 continue
